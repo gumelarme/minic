@@ -1,0 +1,117 @@
+#+title: Homework
+#+options: toc:nil
+
+#+LATEX_HEADER: \setcounter{section}{8}
+* Design data structure of parse tree for Mini-C, you could use it in parsing analysis.
+1. program \to operation
+2. operation \to ~[~ function param { param } ~]~
+3. function \to char { *-* | *char* }
+4. param \to operation | terminal
+5. terminal \to *'* char | digit | symbol { char | digit | symbol }
+6. char \to a | ... | z | A | ... | Z 
+7. digit \to 0 | ... | 9
+8. symbol \to *{* | *}* | *(* | *)* | *[* | *]* | *+* | *-* | *** | *\* | *=* | *!* | *<* | *>*
+
+This one function code 
+#+ATTR_LATEX: :options frame=single
+#+BEGIN_SRC c
+  void main(void){
+       return 5;
+  }
+#+END_SRC
+will produce this parse tree:
+#+ATTR_LATEX: :options frame=single
+#+BEGIN_EXAMPLE
+
+  [program
+    [declaration-list
+      [declaration
+        [function-declaration
+          [type-specifier 'void] 'ID '( [parameters 'void] ')
+          [compound-statement
+            '{
+            [statement-list
+              [statement
+                [jump-statement 'return
+                  [optional-expression
+                    [expression
+                      [conditional-expression
+                        [additive-expression
+                          [multiplicative-expression
+                            [primary-expression 'NUM]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+            '}
+          ]
+        ]
+      ]
+    ]
+  ]
+#+END_EXAMPLE
+* To EBNF
+1. program \to declaration-list
+2. declaration-list \to declaration { declaration }
+3. declaration \to variable-declaration | function-declaration
+4. variable-declaration \to type-specifer *ID*; | type-specifer *ID[NUM]*;
+5. type-specifier \to *int* | *void* | struct-specifier
+6. struct-specifier \to struct optional-identifier *{* struct-declaration-list *}*
+7. optional-identifier \to =[= *ID* =]=
+8. struct-declaration-list \to *int ID;* { *int ID;* }
+9. function-declaration \to type-specifier *ID* *(* parameters *)* compound-statement
+10. parameters \to parameter-list | void
+11. parameter-list \to parameter { , parameter }
+12. parameter \to type-specifier *ID* ~[~ *[ ]* ~]~
+13. compound-statement \to *{* local-declaration statement-list *}*
+14. local-declaration \to { variable-declaration }
+15. statement-list \to { statement }
+16. statement \to compound-statement | expression-statement | selection-statement | labeled-statement | iteration-statement | jump-statement
+17. expression-statement \to optional-expression ;
+18. optional-expression \to ~[~ expression ~]~
+19. selection-statement \to *if (* expression *)* statement ~[~ *else* statement
+    ~]~ | *switch (* expression *)* statement
+20. iteration-statement \to *while (*  expression *)* statement | *for (*
+    optional-expression; optional-expression; optional-expression; *)* statement
+21. jump-statement \to *return* optional-expression ;
+22. labeled-statement \to (*ID* | *case* conditional-expression | *default*) *:* statement
+23. expression \to assignment-expression | conditional-expression
+24. assignment-expression \to variable *=* expression
+25. variable \to *ID* ~[~ (*[NUM]* | *.ID*) ~]~
+26. conditional-expression \to additive-expression { relation-operator additive-expression}
+27. relation-operator \to *<=* | *<* | *>* | *>=* | *!=* | *==*
+28. additive-expression \to multiplicative-expression { add-operator multiplicative-expression}
+29. add-operator \to *+* | *-*
+30. multiplicative-expression \to primary-expression {  mul-operator primary-expression }
+31. mul-operator \to *** | */*
+32. primary-expression \to variable | *NUM* | *(* expression *)* | call-function
+33. call-function \to *ID (* arguments *)*
+34. arguments \to { argument-list }
+35. argument-list \to expression { , expression }
+
+* Design a data structure of Abstract syntax tree (AST ) for Mini-C
+1. program \to operation
+2. operation \to *[* operator param param *]*
+3. param \to operation | constant
+4. operator \to *+* | *-* | *** | */*
+5. constant \to digit { digit }
+6. digit \to 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+ 
+
+this line of code:
+#+ATTR_LATEX: :options frame=single
+#+BEGIN_SRC python
+  5 * (4 + 9) + 2
+#+END_SRC
+
+will produce:
+#+ATTR_LATEX: :options frame=single
+#+BEGIN_EXAMPLE
+  [+ [* 5 [+ 4 9]] 2]
+#+END_EXAMPLE
+
+* Implement parser according to your EBNF, test it using example 10.1 output its parse tree and AST.
