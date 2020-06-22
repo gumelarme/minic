@@ -249,6 +249,9 @@ class TextScanner(Scanner):
     def is_next(self):
         return len(self.text) - 1 >= self.pointer
 
+    def get_linum(self) -> int:
+        return 1
+
     def back(self):
         self.pointer -= 1
 

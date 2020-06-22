@@ -2,17 +2,26 @@ from dataclasses import dataclass
 from typing import List
 
 @dataclass
-class Operation:
+class Node:
     linum: int
+    name: str
     op: List
+
+    def __init__(self, linum, op, name=None):
+        self.linum = linum
+        self.name = op[0]
+        self.op = op
 
     def get_tree(self):
         result = []
         for x in self.op:
-            if type(x) == Operation:
+            if type(x) == Node:
                 result += [x.get_tree()]
+            elif type(x) == list:
+                result.append([v.get_tree() if type(v) == Node else v for v in x])
             else:
                 result += [x]
+
         return result
 
     def get_tree_str(self):

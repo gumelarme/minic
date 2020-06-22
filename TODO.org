@@ -1,0 +1,40 @@
+* TODO Make a chainable variable 
+  The current feature only allow one child object/properties like =var.prop=
+  or array like =arr[1]= but did not allow =object.prop.childprop=
+
+* TODO Something nice
+* TODO Noce thing
+ <2020-06-10 Wed>
+ [[file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/minic/parser.py][file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/minic/parser.py]]
+* TODO Add test for exp() method
+  the exp() purpose is solely proxying for assignment exp and conditional exp
+  not sure how to test it
+ 
+ <2020-06-10 Wed>
+ [[file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/minic/parser.py::def exp(self, var=None):]]
+* TODO Add test for optional_exp() 
+  Still dont know what to test for this
+ 
+ <2020-06-12 Fri>
+ [[file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/minic/parser.py::def optional_exp(self, var=None):]]
+* TODO Define LabeledStatement Node
+  Its still ambigous
+ 
+ <2020-06-14 Sun>
+ [[file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/tests/minic/test_parser.py::# @pytest.mark.parametrize("inp, exp", \[("default:\ncas")]]
+* TODO make label node?
+  an ID for goto statement, or just make it plain string
+ 
+ <2020-06-14 Sun>
+ [[file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/tests/minic/test_parser.py::("goto something;", nd.JumpStmt(1, 'goto', 'something')),]]
+* TODO test for empty while loop conditon
+ 
+ <2020-06-22 Mon>
+ [[file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/tests/minic/test_parser.py::)),]]
+* TODO make type_declaration  recognize new type 
+ 
+  Now its only recognize =int= and =void= even =void somevariable= is a valid statement;
+  
+ <2020-06-22 Mon>
+ [[file:/run/media/gumendol/rex/school/nfu_2/compiler/minic/tests/minic/test_parser.py::("int something;", nd.VarDecl(1, 'int', 'something')),]]
+ 
