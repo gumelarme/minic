@@ -1,3 +1,0 @@
-* Things todo
-** DONE changes parser function to return Operation object
-** TODO Create SymbolTable, SemanticAnalyzer etc.
