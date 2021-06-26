@@ -443,6 +443,26 @@ def test_jump_stmt(inp, exp):
     assert res == exp
 
 @pytest.mark.parametrize("inp, exp", [
+])
+def test_exp_stmt(inp, exp):
+    pass
+
+@pytest.mark.parametrize("inp, exp", [
+])
+def test_labeled_exp(inp, exp):
+    pass
+
+@pytest.mark.parametrize("inp, exp", [
+])
+def test_optional_exp(inp, exp):
+    pass
+
+@pytest.mark.parametrize("inp, exp", [
+])
+def test_exp(inp, exp):
+    pass
+
+@pytest.mark.parametrize("inp, exp", [
     ("x = 10", nd.AssignmentOp(1, nd.Var(1,  'x'), nd.Num(1, 10))),
     ("x = y", nd.AssignmentOp(1, nd.Var(1,  'x'), nd.Var(1, 'y'))),
     ("x = y = 10", nd.AssignmentOp(1, nd.Var(1,  'x'), nd.AssignmentOp(1, nd.Var(1, 'y'), nd.Num(1, 10)))),

@@ -52,7 +52,7 @@ class Scanner:
     def close(self):
         self.__exit__(None, None, None)
 
-    def spit(self) -> str:
+    def spit(self, linum=0, surround=0) -> str:
         pass
 
     def __enter__(self) -> ScannerObject:
@@ -99,7 +99,6 @@ class Scanner:
                 else:
                     c = ''
             else:
-                symbols = [TokenType.REL_OPERATOR, TokenType.ASSIGNMENT]
 
                 #handles anything separated by space
                 if token.ttype in [TokenType.ID, TokenType.CONSTANT]:
@@ -138,28 +137,6 @@ class Scanner:
                     else:
                         token.value += c
 
-                # # either a symbol or a white space
-                # if token.ttype in [TokenType.ID, TokenType.CONSTANT] \
-                #    and not c.isnumeric() \
-                #    and not c.isalpha():
-
-                #     if word in self.keyword:
-                #         token.ttype =  TokenType.KEYWORD
-
-                #     # either keyword, ID or constant
-                #     return token
-
-                #     # if word != '=':
-                #     #     self.back()
-                #     #     printtoken
-                #     #     return token
-                #     # else:
-                #     #     return (TokenType.ASSIGNMENT, word)
-
-                #     token.ttype =  TokenType.START
-                # else:
-                #     word +=c
-
             c = self.next_char()
 
 class FileScanner(Scanner):
@@ -170,9 +147,24 @@ class FileScanner(Scanner):
         self.isnext = False
         super().__init__()
 
-    def spit(self):
-        for line in self.lines:
-            print(line)
+    def spit(self, linum=0, surround=0):
+        x, y = 0, len(self.lines)
+        text = []
+        # breakpoint()
+        if not (linum == surround == 0):
+            x = linum - surround - 1
+            y = linum + surround
+
+        lines = []
+        linum_len = len(str(y))
+        for i, line in enumerate(self.lines[x:y]):
+            num = i + linum - surround if linum else i + 1
+            lines += [f"{num: >{linum_len}}: {line}"]
+
+        for line in lines:
+            text.append(line)
+
+        return ''.join(text)
 
     def __enter__(self) -> Scanner:
         with open(self.filename) as f:

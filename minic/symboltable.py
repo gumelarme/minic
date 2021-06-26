@@ -16,10 +16,11 @@ class TypeSymbol(Symbol):
 
 
     def __repr__(self):
-        return "<{classname}(name:'{name}')>".format(
-            classname= self.__class__.__name__,
-            name=self.name
-        )
+        return f"<T:{self.name}>"
+        # return "<{classname}(name:'{name}')>".format(
+        #     classname= self.__class__.__name__,
+        #     name=self.name
+        # )
 
 @dataclass
 class VarSymbol(Symbol):
@@ -40,7 +41,7 @@ class VarSymbol(Symbol):
 class FunctionSymbol(Symbol):
     name: str
     type: TypeSymbol
-    params: List[VarSymbol]
+    params: List[ParamSymbol]
 
     def __init__(self, name, type, params=None):
         super().__init__(name, type)
@@ -54,16 +55,23 @@ class FunctionSymbol(Symbol):
             params=self.params
         )
 
-class ParamSymbol(Symbol):
-    pass
 
-
-class SymbolTable:
+class ScopedSymbolTable:
     _table: Dict
+    verbose: bool
+    name: str
+    level: int
+    parent_scope: ScopedSymbolTable
 
-    def __init__(self):
+    def __init__(self, name, level, parent_scope=None, verbose=True):
+        self.verbose = verbose
+        self.name = name
+        self.level = level
+        self.parent_scope = parent_scope
         """Init including creation of basic types"""
         self._table = {}
+
+    def init_builtin(self):
         self.insert(TypeSymbol('int'))
         self.insert(TypeSymbol('void'))
         self.insert(TypeSymbol('bool'))
@@ -71,11 +79,42 @@ class SymbolTable:
     def insert(self, sym: Symbol):
         self._table[sym.name] = sym
 
-    def lookup(self, name:str) -> Symbol:
-        return self._table[name]
+        if self.verbose:
+            print("Insert:", sym.name)
+
+    def lookup(self, name:str, deep=True) -> Symbol:
+        if self.verbose:
+            print("Lookup:", name, f"@{self.name}")
+
+        symbol = self._table.get(name, None)
+
+        if symbol:
+            return symbol
+
+        if self.parent_scope and deep:
+            return self.parent_scope.lookup(name)
+
+        return None
+
 
     def __str__(self):
-        max_type = max([len(x) for x in self._table.keys()])
-        fmt = "{:<%d}: {}" % max_type
-        content = [fmt.format(k, v) for k, v in self._table.items()]
-        return "\n".join(content)
+        content = []
+        if len(self._table):
+            max_type = max([len(x) for x in self._table.keys()])
+            fmt = "\t{:<%d} : {}" % max_type
+            content = [fmt.format(k, v) for k, v in self._table.items()]
+
+        text = "\n\nSCOPED SYMBOL TABLE"
+        l = len(text)
+        text += f"\n{'='*l}"
+        text += "\nScope name: {}"
+        text += "\nScope level: {}"
+        text += "\nContents:"
+        text += f"\n" + '-'*l
+        text += "\n{}"
+        text += f"\n" + '-'*l
+        return text.format(
+            self.name,
+            self.level,
+            "\n".join(content) if len(content) else '\tNone'
+        )

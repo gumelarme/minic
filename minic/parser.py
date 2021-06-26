@@ -1,8 +1,10 @@
 from typing import List, Tuple, Union
 
-from minic.scanner import FileScanner, Scanner, TokenType, Token
-import minic.node as nd
 from pydantic.dataclasses import dataclass
+
+import minic.node as nd
+from minic.scanner import FileScanner, Scanner, TokenType, Token
+from minic.exceptions import SyntaxError
 
 class Parser:
     def __init__(self, scn: Scanner):
@@ -15,18 +17,19 @@ class Parser:
         t += "}"
         return t
 
-
     def match(self, expected_token: Tuple[TokenType, str]):
         if not self.ct:
             raise Exception("Current token value is None")
 
-        err_msg = f"Expecting {expected_token}, instead of {self.ct}"
+        err_msg = f"Expecting '{expected_token.value}', instead of '{self.ct.value}'"
         if self.ct.ttype != expected_token.ttype:
-            raise Exception(err_msg)
+            raise SyntaxError(self.scanner, self.ct, err_msg)
+            # raise Exception(err_msg)
 
         if expected_token.ttype == TokenType.SEPARATOR:
             if self.ct.value != expected_token.value:
-                raise Exception(err_msg)
+                # raise Exception(err_msg)
+                raise SyntaxError(self.scanner, self.ct, err_msg)
 
         temp, self.ct = self.ct, self.scanner.next_token()
         if temp.ttype == TokenType.CONSTANT:
@@ -110,8 +113,9 @@ class Parser:
 
         return nd.ParamDecl(linum, t, name)
     def type_specifier(self):
-        # token, word = self.ct
+        word = self.ct.value
         if self.ct.ttype != TokenType.KEYWORD:
+            # breakpoint()
             raise Exception(f'Err: \'{word}\' expected a keyword')
 
         if self.ct.value in self.types:
@@ -150,7 +154,7 @@ class Parser:
                 else:
                     res += [self.exp_stmt(var)]
             else:
-                raise Exception('Unexpected {}'.format(self.ct))
+                raise SyntaxError(self.scanner, self.ct, 'Unexpected {}'.format(self.ct))
 
         return self.first(res)
 
@@ -205,6 +209,7 @@ class Parser:
             key = self.match(Token(TokenType.KEYWORD, 'if'))
             self.match(self._sep('('))
             condition = self.exp()
+
             self.match(self._sep(')'))
 
             #if body
@@ -267,8 +272,16 @@ class Parser:
         '''
         TODO: Make test
         '''
+        curtoken = self.ct
         res = self.optional_exp(var)
-        self.match(self._sep(';'))
+        # breakpoint()
+        try:
+            self.match(self._sep(';'))
+        except SyntaxError as ex:
+            ex.token = curtoken
+            ex.message = "Expecting semicolon ';' after a statement"
+            raise
+
         return res
 
     def labeled_stmt(self, var=None):
@@ -295,8 +308,6 @@ class Parser:
         if self.ct.value != ';':
             x = self.exp(var)
             return x
-
-        # self.match(self._sep(';'))
         return None
 
     def exp(self, var=None):
@@ -333,9 +344,15 @@ class Parser:
         name, prop = '', None
 
         if self.ct.ttype == TokenType.ID:
+            if self.ct.value == 'while':
+                breakpoint()
             name = self.match(Token(TokenType.ID, ''))
         else:
-            raise Exception(f'Token type is not ID: {self.ct}')
+            raise SyntaxError(
+                self.scanner,
+                self.ct,
+                f'Expecting an identifier instead got: {self.ct}'
+            )
 
         if self.ct == self._sep('['):
             self.match(self._sep('['))

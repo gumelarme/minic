@@ -1,9 +1,14 @@
 int result;
+int b;
+
 int power(int n){
-  if(x==3) return 0;
+  if(n==0){
+    return 1;
+  }else{
+    return n * power(n-1);
+  }
 }
 
-void main(void){
-  result = power(5 * 2*(1 + 2));
+void main(int a){
+  result = power(5);
 }
-nks

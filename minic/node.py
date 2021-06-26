@@ -2,10 +2,10 @@ from typing import List, Union, Tuple
 
 from dataclasses import dataclass, field
 # from pydantic.dataclasses import dataclass, field
-
-
+#
 from pydantic import StrictInt
-from minic.symboltable import SymbolTable, VarSymbol, FunctionSymbol, TypeSymbol
+from minic.symboltable import ScopedSymbolTable, VarSymbol, FunctionSymbol, TypeSymbol
+from minic.exceptions import SemanticError
 
 @dataclass
 class Node:
@@ -21,21 +21,6 @@ class Node:
             return []
 
         return stmt if type(stmt) == list else [stmt]
-
-    def get_tree(self):
-        result = []
-        for x in self.op:
-            if type(x) == Node:
-                result += [x.get_tree()]
-            elif type(x) == list:
-                result.append([v.get_tree() if type(v) == Node else v for v in x])
-            else:
-                result += [x]
-
-        return result
-
-    def get_tree_str(self):
-        return str(self.get_tree()).replace("'", "").replace(",", "")
 
 @dataclass
 class Num(Node):
@@ -72,8 +57,8 @@ class Var(Node):
 @dataclass
 class BinOp(Node):
     operator: str
-    left: Union['BinOp', Num]
-    right: Union['BinOp', Num]
+    left: Union['BinOp', Num, Var]
+    right: Union['BinOp', Num, Var]
 
     def __repr__(self):
         return "BinOp[{linum}]({op}, {l}, {r})".format(
@@ -86,8 +71,8 @@ class BinOp(Node):
 @dataclass
 class RelOp(Node):
     operator: str
-    left: Union['RelOp', BinOp, Num]
-    right: Union['RelOp', BinOp, Num]
+    left: Union['RelOp', BinOp, Num, Var]
+    right: Union['RelOp', BinOp, Num, Var]
 
     def __repr__(self):
         return "RelOp[{linum}]({op}, {l}, {r})".format(
@@ -170,6 +155,12 @@ class FuncDecl(Node):
     params: List[ParamDecl] = None
     body: List = None
 
+    def __repr__(self):
+        return "FuncDel[{}]([\n\t\t{}\n\t])".format(
+            self.linum,
+            ',\n\t\t'.join([str(v) for v in self.body])
+        )
+
 @dataclass
 class VarDecl(Node):
     type: str
@@ -179,36 +170,10 @@ class VarDecl(Node):
 class Program(Node):
     declarations: List[Union[ParamDecl, VarDecl]]
 
-# TODO: For, While, Switch
+    def __repr__(self):
+        return "Program[{}]([\n\t{}\n])".format(
+            self.linum,
+            ',\n\t'.join([str(v) for v in self.declarations])
+        )
 
-class NodeVisitor:
-    def __init__(self, root: Node):
-        self.root = root
-        self.symtab = SymbolTable()
 
-    def start(self):
-        self.visit(self.root)
-        print(self.symtab)
-
-    def visit(self, node: Node):
-        method_name = "visit_" + node.name
-        method = getattr(self, method_name)
-        method(node)
-
-    def visit_block(self, nodes: List[Node]):
-        for x in nodes:
-            self.visit(x)
-
-    def visit_program(self, node: Node):
-        self.visit_block(node.op[1:])
-
-    def visit_var(self, node: Var):
-        int_type = self.symtab.lookup(node.op[1])
-        symbol = VarSymbol(node.op[2], int_type)
-        self.symtab.insert(symbol)
-
-    def visit_func(self, node: Node):
-        data = node.op[1:]
-        rettype = self.symtab.lookup(data[0])
-        func = FunctionSymbol(data[1], rettype, data[2][1])
-        self.symtab.insert(func)
